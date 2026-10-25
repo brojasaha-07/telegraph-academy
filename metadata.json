@@ -1,0 +1,8 @@
+{
+  "name": "Remix Telegraph Academy",
+  "description": "Master Morse code in this immersive Victorian-era telegraph office simulator and save the runaway train.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

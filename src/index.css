@@ -1,0 +1,284 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-wood-darkest: #120906;
+    --color-wood-dark: #1f110a;
+    --color-wood-mid: #2e1a10;
+    --color-wood-light: #442617;
+    --color-wood-border: #56331f;
+
+    --color-brass-highlight: #fff2c4;
+    --color-brass-bright: #f5cf53;
+    --color-brass-mid: #cf9c27;
+    --color-brass-shadow: #876211;
+    --color-brass-dark: #4b3608;
+
+    --color-copper-bright: #e78c52;
+    --color-copper-mid: #b85b1e;
+    --color-copper-shadow: #73320c;
+
+    --color-parchment-light: #fcf8ee;
+    --color-parchment-mid: #f3ebcb;
+    --color-parchment-aged: #e4d7ad;
+    --color-parchment-dark: #cbb983;
+
+    --color-ink: #1b120c;
+    --color-ink-muted: #4e392b;
+
+    --color-gold-glow: #ffcf33;
+    --color-crimson: #a93226;
+    --color-amber-lamp: rgba(243, 156, 18, 0.4);
+  }
+
+  body {
+    background-color: var(--color-wood-darkest);
+    color: var(--color-parchment-light);
+    font-family: 'Playfair Display', Georgia, serif;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+}
+
+/* Wood grain procedural backdrop */
+.victorian-wood-bg {
+  background-color: #1a0f0a;
+  background-image: 
+    radial-gradient(circle at 85% 15%, rgba(245, 176, 65, 0.22) 0%, rgba(26, 15, 10, 0.05) 55%, transparent 75%),
+    radial-gradient(circle at 15% 85%, rgba(211, 84, 0, 0.12) 0%, transparent 60%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 18px),
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.18) 0px, rgba(0,0,0,0.18) 2px, transparent 2px, transparent 8px),
+    linear-gradient(180deg, #24140c 0%, #150b06 60%, #0d0704 100%);
+}
+
+/* Gas lamp flicker */
+@keyframes lamp-flicker {
+  0%, 100% { opacity: 0.88; transform: scale(1); }
+  25% { opacity: 0.95; transform: scale(1.02); }
+  50% { opacity: 0.82; transform: scale(0.99); }
+  72% { opacity: 0.91; transform: scale(1.01); }
+  85% { opacity: 0.79; transform: scale(0.98); }
+}
+
+.lamp-glow {
+  animation: lamp-flicker 7s ease-in-out infinite;
+}
+
+/* Ambient gear rotations */
+@keyframes rotate-cw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotate-ccw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+.gear-spin-cw-slow {
+  animation: rotate-cw 48s linear infinite;
+}
+.gear-spin-ccw-slow {
+  animation: rotate-ccw 36s linear infinite;
+}
+.gear-spin-cw-mid {
+  animation: rotate-cw 24s linear infinite;
+}
+.gear-spin-ccw-fast {
+  animation: rotate-ccw 16s linear infinite;
+}
+
+/* Ambient steam drifting */
+@keyframes steam-drift {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.85);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.22;
+  }
+  60% {
+    opacity: 0.18;
+    transform: translateY(-80px) translateX(25px) scale(1.25);
+  }
+  100% {
+    transform: translateY(-160px) translateX(45px) scale(1.6);
+    opacity: 0;
+  }
+}
+
+.steam-wisp-1 {
+  animation: steam-drift 9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.steam-wisp-2 {
+  animation: steam-drift 11s cubic-bezier(0.4, 0, 0.2, 1) infinite 3s;
+}
+.steam-wisp-3 {
+  animation: steam-drift 8s cubic-bezier(0.4, 0, 0.2, 1) infinite 5.5s;
+}
+
+/* Brass plaque and bezel styling */
+.brass-plate {
+  background: linear-gradient(145deg, #f7d774 0%, #d4a530 25%, #ae7f1b 60%, #e3b94a 85%, #886212 100%);
+  border: 1px solid #ffe99b;
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.7),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.6),
+    0 4px 10px rgba(0, 0, 0, 0.7),
+    0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.brass-plate-inset {
+  background: linear-gradient(170deg, #1d1109 0%, #2f1c11 40%, #170d07 100%);
+  border: 2px solid #a87920;
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.8),
+    0 1px 1px rgba(255, 235, 160, 0.25);
+}
+
+.brass-button {
+  background: linear-gradient(180deg, #f9e28f 0%, #cf9c27 35%, #a87818 80%, #7d570c 100%);
+  border-top: 1px solid #fff5b8;
+  border-bottom: 2px solid #3d2703;
+  border-left: 1px solid #b88b22;
+  border-right: 1px solid #b88b22;
+  color: #1f1304;
+  text-shadow: 0 1px 0 rgba(255, 245, 180, 0.65);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.brass-button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #fff0aa 0%, #e0ab32 35%, #ba881f 80%, #916611 100%);
+  box-shadow: 
+    0 5px 12px rgba(0, 0, 0, 0.7),
+    0 0 12px rgba(245, 207, 83, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.brass-button:active:not(:disabled) {
+  transform: translateY(2px);
+  background: linear-gradient(180deg, #a87818 0%, #cf9c27 70%, #f9e28f 100%);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    inset 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.brass-rivet {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffe699 0%, #b8861e 60%, #4a3407 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255,255,255,0.6);
+}
+
+/* Parchment text paper */
+.parchment-sheet {
+  background-color: #f7f1dd;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.35) 0%, transparent 80%),
+    radial-gradient(circle at 20% 80%, rgba(184, 134, 11, 0.06) 0%, transparent 60%),
+    radial-gradient(circle at 85% 25%, rgba(160, 82, 45, 0.05) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.015) 0px, rgba(0, 0, 0, 0.015) 1px, transparent 1px, transparent 16px);
+  color: #24160d;
+  box-shadow: 
+    inset 0 0 35px rgba(120, 80, 20, 0.22),
+    0 8px 24px rgba(0, 0, 0, 0.65);
+}
+
+/* Ticker tape paper */
+.ticker-tape {
+  background-color: #f5eed8;
+  background-image: 
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 12px),
+    linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.12) 100%);
+  color: #1e130a;
+  box-shadow: 
+    inset 0 2px 4px rgba(0,0,0,0.2),
+    inset 0 -2px 4px rgba(0,0,0,0.2),
+    0 3px 8px rgba(0,0,0,0.4);
+}
+
+/* Odometer rolling numbers */
+.odometer-digit {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-variant-numeric: tabular-nums;
+  background: #140b06;
+  color: #f8e5a6;
+  border: 1px solid #6b4d14;
+  border-radius: 2px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.15);
+}
+
+/* Red shake animation for wrong Morse pattern */
+@keyframes shake-red {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.shake-wrong {
+  animation: shake-red 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Spark flash at telegraph contact */
+@keyframes spark-flash {
+  0% { transform: scale(0.6) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.3) rotate(45deg); opacity: 1; }
+  100% { transform: scale(0.8) rotate(90deg); opacity: 0; }
+}
+
+.spark-active {
+  animation: spark-flash 0.18s ease-out;
+}
+
+/* Sophia idle breathing animation */
+@keyframes sophia-idle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Tour active spotlight brass glow */
+.tour-spotlight-active {
+  position: relative !important;
+  z-index: 60 !important;
+  outline: 3px solid #f5cf53 !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 0 4px #b8860b, 0 0 25px rgba(245, 207, 83, 0.75), 0 0 60px rgba(245, 207, 83, 0.35) !important;
+  transition: all 0.3s ease;
+}
+
+/* Red Ink CLEARED Stamp Animation */
+@keyframes stamp-impact {
+  0% { transform: scale(2.4) rotate(-18deg); opacity: 0; }
+  60% { transform: scale(0.92) rotate(-8deg); opacity: 1; }
+  85% { transform: scale(1.05) rotate(-9deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-8.5deg); opacity: 1; }
+}
+
+.stamp-cleared-anim {
+  animation: stamp-impact 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Accessibility: respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .gear-spin-cw-slow,
+  .gear-spin-ccw-slow,
+  .gear-spin-cw-mid,
+  .gear-spin-ccw-fast,
+  .steam-wisp-1,
+  .steam-wisp-2,
+  .steam-wisp-3,
+  .lamp-glow,
+  .stamp-cleared-anim {
+    animation: none !important;
+  }
+}
+
