@@ -19,6 +19,7 @@ import { HowToPlayModal } from './components/HowToPlayModal';
 import { SophiaTour } from './components/SophiaTour';
 import { SophiaGameplayBubble } from './components/SophiaGameplayBubble';
 import { LineDispatchMap } from './components/LineDispatchMap';
+import { OfficeEntryScreen } from './components/OfficeEntryScreen';
 import {
   GAME_LEVELS,
   getLearnedLetters,
@@ -33,6 +34,7 @@ import {
   setVoiceEnabled,
   subscribeVoiceEnabled,
   syncSophiaVoiceVolume,
+  primeVoiceAudio,
 } from './audio/sophiaVoice';
 import { Pause, Play, RotateCcw, BookOpen, Settings as SettingsIcon, Lightbulb } from 'lucide-react';
 
@@ -45,6 +47,28 @@ export default function App() {
   const [isTourOpen, setIsTourOpen] = useState<boolean>(false);
   const [isFinalVictory, setIsFinalVictory] = useState<boolean>(false);
   const practiceCallbackRef = useRef<((letter: string) => void) | null>(null);
+
+  // Office entry gate: shown once per visit before anything else to unlock audio
+  const [hasEnteredOffice, setHasEnteredOffice] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return sessionStorage.getItem('telegraph_office_entered') === 'true';
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  const handleEnterOffice = useCallback(() => {
+    primeVoiceAudio();
+    try {
+      sessionStorage.setItem('telegraph_office_entered', 'true');
+    } catch (e) {
+      console.warn('sessionStorage setItem failed:', e);
+    }
+    setHasEnteredOffice(true);
+  }, []);
 
   // Settings
   const [timingDifficulty, setTimingDifficulty] = useState<TimingDifficulty>(TIMING_PRESETS.Standard);
@@ -211,7 +235,9 @@ export default function App() {
   // Synchronize document.body.dataset.state for Ultra Mode verification
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      if (appState === 'title') {
+      if (!hasEnteredOffice) {
+        document.body.dataset.state = 'title';
+      } else if (appState === 'title') {
         document.body.dataset.state = 'title';
       } else if (appState === 'playing' || appState === 'lesson') {
         document.body.dataset.state = 'playing';
@@ -223,7 +249,7 @@ export default function App() {
         document.body.dataset.state = 'playing';
       }
     }
-  }, [appState]);
+  }, [appState, hasEnteredOffice]);
 
   // Hook for Miss Sophia's Step 3 interactive practice tapping
   const handleHookPracticeDecoded = useCallback((cb: (letter: string) => void) => {
@@ -233,8 +259,10 @@ export default function App() {
     };
   }, []);
 
-  // First launch: check if guided tour has been completed
+  // First launch: check if guided tour has been completed (only after entering the office!)
   useEffect(() => {
+    if (!hasEnteredOffice) return;
+
     try {
       const tourCompleted = localStorage.getItem('telegraph_tour_completed');
       if (!tourCompleted) {
@@ -244,7 +272,7 @@ export default function App() {
     } catch (e) {
       console.warn('Tour check failed:', e);
     }
-  }, [startLevel]);
+  }, [hasEnteredOffice, startLevel]);
 
   // Begin transmission after lesson card
   const handleBeginTransmission = () => {
@@ -478,8 +506,16 @@ export default function App() {
       {/* Background Gas Lamp, Steam, and Interlocking Gears */}
       <AmbientOffice />
 
+      {/* 0. ENTRY SCREEN: shown once per visit before anything else to unlock audio */}
+      {!hasEnteredOffice && (
+        <OfficeEntryScreen
+          onEnter={handleEnterOffice}
+          reducedMotion={reducedMotion}
+        />
+      )}
+
       {/* 1. TITLE SCREEN VIEW */}
-      {appState === 'title' && (
+      {hasEnteredOffice && appState === 'title' && (
         <TitleScreen
           currentLevel={currentLevel}
           highestLevelReached={highestLevelReached}
@@ -504,7 +540,7 @@ export default function App() {
       )}
 
       {/* 2. LIFELINE ASSISTIVE MODE VIEW */}
-      {appState === 'lifeline' && (
+      {hasEnteredOffice && appState === 'lifeline' && (
         <LifelineMode
           onBackToTitle={() => setAppState('title')}
           timingDifficulty={timingDifficulty}
@@ -512,11 +548,12 @@ export default function App() {
       )}
 
       {/* 3. ACTIVE GAMEPLAY & PAUSED VIEW */}
-      {(appState === 'playing' ||
-        appState === 'paused' ||
-        appState === 'lesson' ||
-        appState === 'summary' ||
-        appState === 'gameover') && (
+      {hasEnteredOffice &&
+        (appState === 'playing' ||
+          appState === 'paused' ||
+          appState === 'lesson' ||
+          appState === 'summary' ||
+          appState === 'gameover') && (
         <main className="relative z-10 flex flex-col justify-between min-h-screen max-w-5xl mx-auto w-full px-2 sm:px-3 py-1 sm:py-2 select-none">
           {/* Top Victorian HUD Header */}
           <div className="flex items-center justify-between px-2 py-1 border-b border-[#5c3e1c]/80 bg-[#1f1109]/50 rounded-lg mb-1">
@@ -838,7 +875,7 @@ export default function App() {
 
       {/* MISS SOPHIA HARTWELL INTERACTIVE GUIDED TOUR */}
       <SophiaTour
-        isOpen={isTourOpen}
+        isOpen={hasEnteredOffice && isTourOpen}
         onComplete={() => {
           setIsTourOpen(false);
           try {

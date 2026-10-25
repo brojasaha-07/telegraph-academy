@@ -27,22 +27,67 @@ let currentAudio: HTMLAudioElement | null = null;
 let currentProgressFrame: number | null = null;
 let hasUserInteracted = false;
 
+export interface QueuedVoiceLine {
+  url: string;
+  callbacks?: PlayVoiceCallbacks;
+}
+
+let pendingVoiceLine: QueuedVoiceLine | null = null;
+
+export function clearPendingVoiceQueue(): void {
+  pendingVoiceLine = null;
+}
+
+export function flushPendingVoiceQueue(): void {
+  if (pendingVoiceLine) {
+    const queued = pendingVoiceLine;
+    pendingVoiceLine = null;
+    playSophiaVoice(queued.url, queued.callbacks);
+  }
+}
+
+/**
+ * Primes Web Audio and HTML Audio within a user interaction context.
+ * Called when entering the office or on direct click/space/enter gesture.
+ */
+export function primeVoiceAudio(): void {
+  hasUserInteracted = true;
+  telegraphAudio.unlock();
+
+  try {
+    const silent = new Audio(
+      'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA='
+    );
+    silent.volume = 0;
+    const p = silent.play();
+    if (p !== undefined) {
+      p.then(() => {
+        silent.pause();
+      }).catch(() => {});
+    }
+  } catch (e) {
+    console.warn('Audio priming note:', e);
+  }
+
+  flushPendingVoiceQueue();
+}
+
+// Track user interaction to conform to browser autoplay policy and flush queued audio
+if (typeof window !== 'undefined') {
+  const handleUserInteraction = () => {
+    hasUserInteracted = true;
+    telegraphAudio.unlock();
+    flushPendingVoiceQueue();
+  };
+  window.addEventListener('pointerdown', handleUserInteraction, { capture: true, passive: true });
+  window.addEventListener('keydown', handleUserInteraction, { capture: true, passive: true });
+  window.addEventListener('touchstart', handleUserInteraction, { capture: true, passive: true });
+  window.addEventListener('click', handleUserInteraction, { capture: true, passive: true });
+}
+
 // Listeners for voice enabled changes
 type VoiceListener = (enabled: boolean) => void;
 const voiceListeners = new Set<VoiceListener>();
-
-// Track user interaction to conform to browser autoplay policy
-if (typeof window !== 'undefined') {
-  const markInteracted = () => {
-    hasUserInteracted = true;
-    window.removeEventListener('pointerdown', markInteracted, true);
-    window.removeEventListener('keydown', markInteracted, true);
-    window.removeEventListener('touchstart', markInteracted, true);
-  };
-  window.addEventListener('pointerdown', markInteracted, { capture: true, passive: true });
-  window.addEventListener('keydown', markInteracted, { capture: true, passive: true });
-  window.addEventListener('touchstart', markInteracted, { capture: true, passive: true });
-}
 
 export function isVoiceEnabled(): boolean {
   if (typeof window === 'undefined') return true;
@@ -55,7 +100,7 @@ export function setVoiceEnabled(enabled: boolean): void {
     localStorage.setItem('telegraph_voice_enabled', enabled ? 'true' : 'false');
   }
   if (!enabled) {
-    stopSophiaVoice();
+    stopSophiaVoice(true);
   }
   voiceListeners.forEach((listener) => {
     try {
@@ -73,7 +118,10 @@ export function subscribeVoiceEnabled(listener: VoiceListener): () => void {
   };
 }
 
-export function stopSophiaVoice(): void {
+export function stopSophiaVoice(clearQueue = false): void {
+  if (clearQueue) {
+    pendingVoiceLine = null;
+  }
   if (currentProgressFrame !== null) {
     cancelAnimationFrame(currentProgressFrame);
     currentProgressFrame = null;
@@ -186,12 +234,27 @@ export function playSophiaVoice(
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          // Playback started successfully
+          // Playback started successfully, clear queue
+          pendingVoiceLine = null;
         })
         .catch((err) => {
-          // Autoplay policy prevented playback or interrupted by quick navigation
           stopTracking();
-          callbacks?.onError?.();
+          const isBlocked =
+            err?.name === 'NotAllowedError' ||
+            (err?.name === 'AbortError' && !hasUserInteracted) ||
+            (typeof err?.message === 'string' &&
+              (err.message.includes('interact') ||
+                err.message.includes('user') ||
+                err.message.includes('play() failed') ||
+                err.message.includes('autoplay')));
+
+          if (isBlocked) {
+            console.warn('Voice line blocked by browser autoplay. Queued for next user interaction:', url);
+            pendingVoiceLine = { url, callbacks };
+          } else {
+            callbacks?.onError?.();
+          }
+
           if (currentAudio === audio) {
             currentAudio = null;
           }
